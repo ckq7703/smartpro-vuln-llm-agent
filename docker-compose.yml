@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  chatbot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: smartpro-vuln-llm-agent:latest
+    container_name: smartpro-vuln-llm-agent
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+      - ./transactions.db:/app/transactions.db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

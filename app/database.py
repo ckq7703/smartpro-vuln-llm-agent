@@ -1,9 +1,11 @@
 import sqlite3
 import time
-import json 
+import json
+from app.security_logger import log_sql_query
 
 class TransactionDb:
-    def __init__(self, db_name="transactions.db"):
+    def __init__(self, db_name="transactions.db", session_id: str = "unknown"):
+        self.session_id = session_id
         self.conn = sqlite3.connect(db_name)
         self.create_tables()
         self.seed_data()
@@ -36,22 +38,22 @@ class TransactionDb:
 
         # Sample users
         users = [
-            (1,"MartyMcFly", "Password1"),
-            (2,"DocBrown", "flux-capacitor-123"),
-            (3,"BiffTannen", "Password3"),
-            (4,"GeorgeMcFly", "Password4")
+            (1, "NguyenVanAn", "An@12345"),
+            (2, "TranVanBinh", "FLAG:1da42abce5ea23d9d19df985c56e60ac"),
+            (3, "LeVanCuong", "Cuong@2024!"),
+            (4, "PhamVanDung", "Dung@123!")
         ]
         cursor.executemany("INSERT OR IGNORE INTO Users (userId, username, password) VALUES (?, ?, ?)", users)
 
         # Sample transactions
         transactions = [
-            (1, 1, "DeLoreanParts", "AutoShop", 1000.0),
-            (2, 1, "SkateboardUpgrade", "SportsStore", 150.0),
-            (3, 2, "PlutoniumPurchase", "FLAG:plutonium-256", 5000.0),
-            (4, 2, "FluxCapacitor", "InnovativeTech", 3000.0),
-            (5, 3, "SportsAlmanac", "RareBooks", 200.0),
-            (6, 4, "WritingSupplies", "OfficeStore", 40.0),
-            (7, 4, "SciFiNovels", "BookShop", 60.0)
+            (1, 1, "Mua Linh Kiện Xe", "Cửa Hàng Xe", 1000.0),
+            (2, 1, "Nâng Cấp Ván Trượt", "Cửa Hàng Thể Thao", 150.0),
+            (3, 2, "Mua Chất Phóng Xạ", "FLAG:bb27199794aa924ad470832865d5cbf9", 5000.0),
+            (4, 2, "Mua Tụ Điện Thông Minh", "Công Nghệ Sáng Tạo", 3000.0),
+            (5, 3, "Mua Sách Thể Thao", "Sách Hiếm", 200.0),
+            (6, 4, "Mua Dụng Cụ Viết", "Cửa Hàng Văn Phòng", 40.0),
+            (7, 4, "Mua Tiểu Thuyết KH", "Hiệu Sách", 60.0)
         ]
         cursor.executemany("INSERT OR IGNORE INTO Transactions (transactionId, userId, reference, recipient, amount) VALUES (?, ?, ?, ?, ?)", transactions)
 
@@ -59,7 +61,10 @@ class TransactionDb:
 
     def get_user_transactions(self, userId):
         cursor = self.conn.cursor()
-        cursor.execute(f"SELECT * FROM Transactions WHERE userId = '{str(userId)}'")
+        sql_query = f"SELECT * FROM Transactions WHERE userId = '{str(userId)}'"
+        # Ghi log SQL (kèm phát hiện SQL injection)
+        log_sql_query(self.session_id, sql_query)
+        cursor.execute(sql_query)
         rows = cursor.fetchall()
 
         # Get column names
@@ -69,13 +74,13 @@ class TransactionDb:
         transactions = [dict(zip(columns, row)) for row in rows]
 
         # Convert to JSON format
-        return json.dumps(transactions, indent=4)
+        result_json = json.dumps(transactions, indent=4)
+        return result_json
 
     def get_user(self, user_id):
         cursor = self.conn.cursor()
-        cursor.execute(
-            f"SELECT userId,username FROM Users WHERE userId = {str(user_id)}"
-        )
+        sql_query = f"SELECT userId,username FROM Users WHERE userId = {str(user_id)}"
+        cursor.execute(sql_query)
         rows = cursor.fetchall()
 
         # Get column names
