@@ -1,8 +1,6 @@
 # SmartPro Vuln LLM Agent
 
-<p align="center">
-  <img src="assets/labs-logo.png" alt="SmartPro Logo" width="200"/>
-</p>
+
 
 <p align="center">
   <strong>Một môi trường chatbot dễ bị tấn công để học và nghiên cứu bảo mật AI</strong>
